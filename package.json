@@ -1,0 +1,8 @@
+{
+  "name": "unlockskill-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "midtrans-client": "^1.4.2"
+  }
+}
