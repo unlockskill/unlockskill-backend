@@ -1,6 +1,17 @@
 import midtransClient from "midtrans-client";
 
 export default async function handler(req, res) {
+
+  // ✅ CORS HEADERS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  // ✅ HANDLE PREFLIGHT
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
@@ -26,13 +37,13 @@ export default async function handler(req, res) {
 
     const transaction = await snap.createTransaction(parameter);
 
-    res.status(200).json({
+    return res.status(200).json({
       token: transaction.token
     });
 
   } catch (error) {
     console.error("MIDTRANS ERROR:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Midtrans error",
       error: error.message
     });
