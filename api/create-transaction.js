@@ -33,6 +33,9 @@ export default async function handler(req, res) {
         first_name: req.body.name || "Customer",
         email: req.body.email || "customer@email.com"
       }
+      callbacks: {
+    finish: "https://unlockskill.github.io/Unlock-Skill/success.html"
+      }
     };
 
     const transaction = await snap.createTransaction(parameter);
