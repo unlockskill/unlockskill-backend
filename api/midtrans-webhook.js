@@ -6,32 +6,39 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = req.body;
-    console.log("WEBHOOK BODY:", body);
+    const notification = req.body;
 
-    const orderId = body.order_id;
-    const statusCode = body.status_code;
-    const grossAmount = body.gross_amount;
-    const signatureKey = body.signature_key;
-
-    const serverKey = process.env.MIDTRANS_SERVER_KEY;
-    const input = orderId + statusCode + grossAmount + serverKey;
-
-    const expectedSignature = crypto
+    // 🔐 Validasi signature Midtrans
+    const signatureKey = crypto
       .createHash("sha512")
-      .update(input)
+      .update(
+        notification.order_id +
+        notification.status_code +
+        notification.gross_amount +
+        process.env.MIDTRANS_SERVER_KEY
+      )
       .digest("hex");
 
-    if (signatureKey !== expectedSignature) {
+    if (signatureKey !== notification.signature_key) {
       return res.status(403).json({ message: "Invalid signature" });
     }
 
-    if (body.transaction_status === "settlement") {
-      console.log("✅ PAYMENT SUCCESS:", orderId);
-      // nanti kirim email di sini
+    const transactionStatus = notification.transaction_status;
+
+    console.log("STATUS:", transactionStatus);
+    console.log("ORDER ID:", notification.order_id);
+
+    // ✅ JIKA PEMBAYARAN SUKSES
+    if (transactionStatus === "settlement") {
+
+      // NANTI DI SINI:
+      // - kirim email
+      // - isi link Google Drive sesuai produk
+
+      console.log("✅ PAYMENT SUCCESS");
     }
 
-    return res.status(200).json({ message: "Webhook received" });
+    return res.status(200).json({ message: "OK" });
 
   } catch (error) {
     console.error("WEBHOOK ERROR:", error);
