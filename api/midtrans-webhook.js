@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import emailjs from "@emailjs/nodejs";
 
 export default async function handler(req, res) {
@@ -7,91 +6,94 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log("🔔 WEBHOOK MASUK");
-
     const {
-      order_id,
-      status_code,
-      gross_amount,
-      signature_key,
       transaction_status,
-      customer_details
+      gross_amount,
+      order_id,
+      customer_details,
     } = req.body;
 
+    console.log("🔔 WEBHOOK MASUK");
     console.log("ORDER ID:", order_id);
     console.log("STATUS:", transaction_status);
     console.log("AMOUNT:", gross_amount);
 
-    // ===============================
-    // 1️⃣ VALIDASI SIGNATURE MIDTRANS
-    // ===============================
-    const serverKey = process.env.MIDTRANS_SERVER_KEY;
-    const payload = order_id + status_code + gross_amount + serverKey;
-
-    const expectedSignature = crypto
-      .createHash("sha512")
-      .update(payload)
-      .digest("hex");
-
-    if (signature_key !== expectedSignature) {
-      console.log("❌ SIGNATURE TIDAK VALID");
-      return res.status(401).json({ message: "Invalid signature" });
-    }
-
-    // ===============================
-    // 2️⃣ CEK STATUS PEMBAYARAN
-    // ===============================
+    // hanya proses pembayaran sukses
     if (transaction_status !== "settlement") {
-      console.log("⏳ BELUM SETTLEMENT");
-      return res.status(200).json({ message: "Payment not settled" });
+      return res.status(200).json({ message: "Not settlement" });
     }
 
-    console.log("✅ PEMBAYARAN SUKSES");
-
     // ===============================
-    // 3️⃣ TENTUKAN PRODUK
+    // 1️⃣ TENTUKAN PRODUK & LINK
     // ===============================
-    let productLinks = "";
     let productName = "";
+    let productLinks = "";
 
+    // 🔹 PRODUK 89.000
     if (gross_amount === "89000") {
-  productName = "Unlock Skill – Produk Utama";
-  productLinks =
-     "Akses Produk:\nhttps://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2";
-}
-}
+      productName = "Unlock Skill – Produk Utama";
+      productLinks = `
+<a href="https://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2"
+   style="display:inline-block;padding:14px 28px;
+   background:#22c55e;color:#000;text-decoration:none;
+   border-radius:8px;font-weight:bold;">
+⬇️ Unduh Produk Utama
+</a>`;
+    }
 
-if (gross_amount === "118000") {
-  productName = "Unlock Skill – Produk + Bundling";
-  productLinks =
-    "Akses Produk Utama:\nhttps://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2\n\n" +
-    "Akses Produk Bundling:\nhttps://cdn.scalev.id/DPF/fZZBlKZIM6hA2eHDM8qzD89R/Reseller%20Power%20Kit%20File%20Download.pdf";
-    "Akses Produk Bundling:\nhttps://cdn.scalev.id/uploads/1761556181/tKe4Oa1mGTIeDrMQc4pbmg/FILE-DOWNLOAD-BONUS-TERBARU.pdf";
-}
-}
+    // 🔹 PRODUK BUNDLING 118.000
+    if (gross_amount === "118000") {
+      productName = "Unlock Skill – Produk + Bundling";
+      productLinks = `
+<a href="https://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2"
+   style="display:inline-block;margin-bottom:12px;
+   padding:14px 28px;background:#22c55e;
+   color:#000;text-decoration:none;border-radius:8px;
+   font-weight:bold;">
+⬇️ Unduh Produk Utama
+</a>
+<br/><br/>
+
+<a href="https://cdn.scalev.id/uploads/1761556181/tKe4Oa1mGTIeDrMQc4pbmg/FILE-DOWNLOAD-BONUS-TERBARU.pdf"
+   style="display:inline-block;margin-bottom:12px;
+   padding:14px 28px;background:#38bdf8;
+   color:#000;text-decoration:none;border-radius:8px;
+   font-weight:bold;">
+🎁 Unduh Bonus 1
+</a>
+<br/><br/>
+
+<a href="https://cdn.scalev.id/DPF/fZZBlKZIM6hA2eHDM8qzD89R/Reseller%20Power%20Kit%20File%20Download.pdf"
+   style="display:inline-block;
+   padding:14px 28px;background:#facc15;
+   color:#000;text-decoration:none;border-radius:8px;
+   font-weight:bold;">
+🚀 Unduh Bonus 2
+</a>`;
+    }
+
     // ===============================
-    // 4️⃣ KIRIM EMAIL VIA EMAILJS
+    // 2️⃣ KIRIM EMAIL VIA EMAILJS
     // ===============================
     await emailjs.send(
       process.env.EMAILJS_SERVICE_ID,
       process.env.EMAILJS_TEMPLATE_ID,
       {
-        to_email: customer_details?.email || "customer@email.com",
-        order_id: order_id,
+        to_email: customer_details.email,
+        to_name: customer_details.first_name || "Customer",
         product_name: productName,
-        product_links: productLinks
+        product_links: productLinks,
       },
       {
-        publicKey: process.env.qgcvNkoqoA0mZZ-g7
+        publicKey: process.env.EMAILJS_PUBLIC_KEY,
       }
     );
 
-    console.log("📧 EMAIL BERHASIL DIKIRIM");
+    console.log("✅ EMAIL TERKIRIM");
 
-    return res.status(200).json({ message: "Webhook processed" });
-
+    return res.status(200).json({ message: "Email sent" });
   } catch (error) {
-    console.error("❌ WEBHOOK ERROR:", error);
-    return res.status(500).json({ message: "Webhook error" });
+    console.error("❌ ERROR WEBHOOK:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 }
