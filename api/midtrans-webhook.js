@@ -78,7 +78,7 @@ export default async function handler(req, res) {
     // ===============================
     // 2️⃣ KIRIM EMAIL VIA EMAILJS
     // ===============================
-    await emailjs.send(
+    await send(
       process.env.EMAILJS_SERVICE_ID,
       process.env.EMAILJS_TEMPLATE_ID,
       {
