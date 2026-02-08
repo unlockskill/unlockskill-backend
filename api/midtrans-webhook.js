@@ -1,7 +1,4 @@
 import { send } from "@emailjs/nodejs";
-emailjs.init({
-  publicKey: process.env.EMAILJS_PUBLIC_KEY,
-});
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
