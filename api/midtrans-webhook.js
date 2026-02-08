@@ -1,3 +1,7 @@
+export const config = {
+  runtime: "nodejs",
+};
+
 import { send } from "@emailjs/nodejs";
 
 export default async function handler(req, res) {
