@@ -1,4 +1,4 @@
-import emailjs from "@emailjs/nodejs";
+import emailjs from "emailjs";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
