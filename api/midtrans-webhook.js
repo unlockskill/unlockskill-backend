@@ -2,8 +2,6 @@ export const config = {
   runtime: "nodejs",
 };
 
-import emailjs from "@emailjs/nodejs";
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
@@ -33,65 +31,58 @@ export default async function handler(req, res) {
     let productName = "";
     let productLinks = "";
 
-    // 🔹 PRODUK 89.000
     if (gross_amount === "89000") {
       productName = "Unlock Skill – Produk Utama";
       productLinks = `
-<a href="https://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2"
-   style="display:inline-block;padding:14px 28px;
-   background:#22c55e;color:#000;text-decoration:none;
-   border-radius:8px;font-weight:bold;">
+<a href="https://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2">
 ⬇️ Unduh Produk Utama
 </a>`;
     }
 
-    // 🔹 PRODUK BUNDLING 118.000
     if (gross_amount === "118000") {
       productName = "Unlock Skill – Produk + Bundling";
       productLinks = `
-<a href="https://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2"
-   style="display:inline-block;margin-bottom:12px;
-   padding:14px 28px;background:#22c55e;
-   color:#000;text-decoration:none;border-radius:8px;
-   font-weight:bold;">
+<a href="https://majestic-glove-b03.notion.site/Akses-Bundle-8-Juta-Produk-Digital-Lisensi-U-PLR-PLR-MRR-23ff5ee2488e80b4a065d81cfd6986a2">
 ⬇️ Unduh Produk Utama
-</a>
-<br/><br/>
+</a><br/><br/>
 
-<a href="https://cdn.scalev.id/uploads/1761556181/tKe4Oa1mGTIeDrMQc4pbmg/FILE-DOWNLOAD-BONUS-TERBARU.pdf"
-   style="display:inline-block;margin-bottom:12px;
-   padding:14px 28px;background:#38bdf8;
-   color:#000;text-decoration:none;border-radius:8px;
-   font-weight:bold;">
-🎁 Unduh Bonus 1
-</a>
-<br/><br/>
+<a href="https://cdn.scalev.id/uploads/1761556181/tKe4Oa1mGTIeDrMQc4pbmg/FILE-DOWNLOAD-BONUS-TERBARU.pdf">
+🎁 Unduh Bonus
+</a><br/><br/>
 
-<a href="https://cdn.scalev.id/DPF/fZZBlKZIM6hA2eHDM8qzD89R/Reseller%20Power%20Kit%20File%20Download.pdf"
-   style="display:inline-block;
-   padding:14px 28px;background:#facc15;
-   color:#000;text-decoration:none;border-radius:8px;
-   font-weight:bold;">
-🚀 Unduh Bonus 2
+<a href="https://cdn.scalev.id/DPF/fZZBlKZIM6hA2eHDM8qzD89R/Reseller%20Power%20Kit%20File%20Download.pdf">
+🚀 Reseller powet kit
 </a>`;
     }
 
     // ===============================
-    // 2️⃣ KIRIM EMAIL VIA EMAILJS
+    // 2️⃣ KIRIM EMAIL VIA EMAILJS (REST API)
     // ===============================
-    await emailjs.send(
-  process.env.EMAILJS_SERVICE_ID,
-  process.env.EMAILJS_TEMPLATE_ID,
-  {
-    to_email: customer_details.email,
-    to_name: customer_details.first_name || "Customer",
-    product_name: productName,
-    product_links: productLinks,
-  },
-  {
-    publicKey: process.env.EMAILJS_PUBLIC_KEY,
-  }
-);
+    const emailResponse = await fetch(
+      "https://api.emailjs.com/api/v1.0/email/send",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          service_id: process.env.EMAILJS_SERVICE_ID,
+          template_id: process.env.EMAILJS_TEMPLATE_ID,
+          user_id: process.env.EMAILJS_PUBLIC_KEY,
+          template_params: {
+            to_email: customer_details.email,
+            to_name: customer_details.first_name || "Customer",
+            product_name: productName,
+            product_links: productLinks,
+          },
+        }),
+      }
+    );
+
+    if (!emailResponse.ok) {
+      const errText = await emailResponse.text();
+      throw new Error("EmailJS gagal: " + errText);
+    }
 
     console.log("✅ EMAIL TERKIRIM");
 
