@@ -1,4 +1,4 @@
-import emailjs from "emailjs";
+import { send } from "@emailjs/nodejs";
 emailjs.init({
   publicKey: process.env.EMAILJS_PUBLIC_KEY,
 });
