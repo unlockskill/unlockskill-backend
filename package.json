@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "midtrans-client": "^1.4.2"
+    "midtrans-client": "^1.4.0",
+    "@emailjs/nodejs": "^4.3.0"
   }
 }
