@@ -2,7 +2,7 @@ export const config = {
   runtime: "nodejs",
 };
 
-import { send } from "@emailjs/nodejs";
+import emailjs from "@emailjs/nodejs";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -79,19 +79,19 @@ export default async function handler(req, res) {
     // ===============================
     // 2️⃣ KIRIM EMAIL VIA EMAILJS
     // ===============================
-    await send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_TEMPLATE_ID,
-      {
-        to_email: customer_details.email,
-        to_name: customer_details.first_name || "Customer",
-        product_name: productName,
-        product_links: productLinks,
-      },
-      {
-        publicKey: process.env.EMAILJS_PUBLIC_KEY,
-      }
-    );
+    await emailjs.send(
+  process.env.EMAILJS_SERVICE_ID,
+  process.env.EMAILJS_TEMPLATE_ID,
+  {
+    to_email: customer_details.email,
+    to_name: customer_details.first_name || "Customer",
+    product_name: productName,
+    product_links: productLinks,
+  },
+  {
+    publicKey: process.env.EMAILJS_PUBLIC_KEY,
+  }
+);
 
     console.log("✅ EMAIL TERKIRIM");
 
